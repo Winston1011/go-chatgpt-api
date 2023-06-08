@@ -11,3 +11,4 @@ services:
       - TZ=Asia/Shanghai
       - GO_CHATGPT_API_PROXY=
     restart: unless-stopped
+    network_mode: "host"
