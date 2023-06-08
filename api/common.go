@@ -22,6 +22,7 @@ const (
 	LoginUsernameUrl                   = Auth0Url + "/u/login/identifier?state="
 	LoginPasswordUrl                   = Auth0Url + "/u/login/password?state="
 	ParseUserInfoErrorMessage          = "Failed to parse user login info."
+	ParseUsageInfoErrorMessage         = "Failed to parse usage param ."
 	GetAuthorizedUrlErrorMessage       = "Failed to get authorized url."
 	GetStateErrorMessage               = "Failed to get state."
 	EmailInvalidErrorMessage           = "Email is not valid."

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/linweiyuan/go-chatgpt-api/components"
 	"io"
 	"strings"
 
@@ -123,8 +124,8 @@ func GetCreditGrants(c *gin.Context) {
 
 func GetGetUsage(c *gin.Context) {
 	var usageParam api.UsageParam
-	if err := c.ShouldBindJSON(&usageParam); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, api.ReturnMessage(api.ParseUserInfoErrorMessage))
+	if err := components.Parse(c, &usageParam); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, api.ReturnMessage(api.ParseUsageInfoErrorMessage))
 		return
 	}
 	handleGet(c, fmt.Sprintf(apiGetUsage, usageParam.StartDate, usageParam.EndDate))
