@@ -90,7 +90,7 @@ func setupPlatformAPIs(router *gin.Engine) {
 			apiGroup.POST("/moderations", platform.CreateModeration)
 			apiGroup.GET("/dashboard/billing/credit_grants", platform.GetCreditGrants)
 			apiGroup.GET("/dashboard/billing/subscription", platform.GetSubscription)
-			apiGroup.GET("/dashboard/billing/usage", platform.GetGetUsage)
+			apiGroup.GET("/dashboard/billing/usage/:start_date/:end_date", platform.GetGetUsage)
 			apiGroup.GET("/dashboard/user/api_keys", platform.GetApiKeys)
 		}
 

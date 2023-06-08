@@ -121,8 +121,10 @@ func GetCreditGrants(c *gin.Context) {
 	handleGet(c, apiGetCreditGrants)
 }
 
-func GetGetUsage(c *gin.Context){
-	handleGet(c, apiGetUsage)
+func GetGetUsage(c *gin.Context) {
+	startDate := c.Param("start_date")
+	endDate := c.Param("end_date")
+	handleGet(c, fmt.Sprintf(apiGetUsage, startDate, endDate))
 }
 
 //goland:noinspection GoUnhandledErrorResult
