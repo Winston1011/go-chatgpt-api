@@ -121,6 +121,10 @@ func GetCreditGrants(c *gin.Context) {
 	handleGet(c, apiGetCreditGrants)
 }
 
+func GetGetUsage(c *gin.Context){
+	handleGet(c, apiGetUsage)
+}
+
 //goland:noinspection GoUnhandledErrorResult
 func Login(c *gin.Context) {
 	var loginInfo api.LoginInfo

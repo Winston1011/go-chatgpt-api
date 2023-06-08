@@ -88,21 +88,25 @@ func setupPlatformAPIs(router *gin.Engine) {
 			apiGroup.POST("/embeddings", platform.CreateEmbeddings)
 			apiGroup.GET("/files", platform.ListFiles)
 			apiGroup.POST("/moderations", platform.CreateModeration)
+			apiGroup.GET("/dashboard/billing/credit_grants", platform.GetCreditGrants)
+			apiGroup.GET("/dashboard/billing/subscription", platform.GetSubscription)
+			apiGroup.GET("/dashboard/billing/usage", platform.GetGetUsage)
+			apiGroup.GET("/dashboard/user/api_keys", platform.GetApiKeys)
 		}
 
-		dashboardGroup := platformGroup.Group("/dashboard")
-		{
-			billingGroup := dashboardGroup.Group("/billing")
-			{
-				billingGroup.GET("/credit_grants", platform.GetCreditGrants)
-				billingGroup.GET("/subscription", platform.GetSubscription)
-			}
-
-			userGroup := dashboardGroup.Group("/user")
-			{
-				userGroup.GET("/api_keys", platform.GetApiKeys)
-			}
-		}
+		//dashboardGroup := platformGroup.Group("/dashboard")
+		//{
+		//	billingGroup := dashboardGroup.Group("/billing")
+		//	{
+		//		billingGroup.GET("/credit_grants", platform.GetCreditGrants)
+		//		billingGroup.GET("/subscription", platform.GetSubscription)
+		//	}
+		//
+		//	userGroup := dashboardGroup.Group("/user")
+		//	{
+		//		userGroup.GET("/api_keys", platform.GetApiKeys)
+		//	}
+		//}
 	}
 }
 

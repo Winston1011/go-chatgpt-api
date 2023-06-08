@@ -18,6 +18,7 @@ const (
 
 	apiGetCreditGrants = apiUrl + "/dashboard/billing/credit_grants"
 	apiGetSubscription = apiUrl + "/dashboard/billing/subscription"
+	apiGetUsage 	   = apiUrl + "/dashboard/billing/usage"
 	apiGetApiKeys      = apiUrl + "/dashboard/user/api_keys"
 
 	platformAuthClientID      = "DRivsnm2Mu42T3KOpqdtwB3NYviHYzwD"

@@ -2,9 +2,9 @@ services:
   go-chatgpt-api:
     build: .
     container_name: go-chatgpt-api
-    image: linweiyuan/go-chatgpt-api
+    image: go-chatgpt-api
     ports:
-      - 8080:8080
+      - 8180:8180
     environment:
       - TZ=Asia/Shanghai
       - GO_CHATGPT_API_PROXY=
