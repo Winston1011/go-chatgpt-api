@@ -122,9 +122,12 @@ func GetCreditGrants(c *gin.Context) {
 }
 
 func GetGetUsage(c *gin.Context) {
-	startDate := c.Param("start_date")
-	endDate := c.Param("end_date")
-	handleGet(c, fmt.Sprintf(apiGetUsage, startDate, endDate))
+	var usageParam api.UsageParam
+	if err := c.ShouldBindJSON(&usageParam); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, api.ReturnMessage(api.ParseUserInfoErrorMessage))
+		return
+	}
+	handleGet(c, fmt.Sprintf(apiGetUsage, usageParam.StartDate, usageParam.EndDate))
 }
 
 //goland:noinspection GoUnhandledErrorResult

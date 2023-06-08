@@ -37,6 +37,11 @@ type LoginInfo struct {
 	Password string `json:"password"`
 }
 
+type UsageParam struct {
+	StartDate string `json:"start_date" form:"start_date"`
+	EndDate string `json:"end_date" form:"end_date"`
+}
+
 type AuthLogin interface {
 	GetAuthorizedUrl(csrfToken string) (string, int, error)
 	GetState(authorizedUrl string) (string, int, error)
