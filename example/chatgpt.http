@@ -45,3 +45,11 @@ Accept: text/event-stream
         client.log(data.toString());
     })
 %}
+
+### get models
+GET http://127.0.0.1:8080/chatgpt/models
+Authorization: Bearer {{accessToken}}
+
+### check account
+GET http://127.0.0.1:8080/chatgpt/accounts/check
+Authorization: Bearer {{accessToken}}

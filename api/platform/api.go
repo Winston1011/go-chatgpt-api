@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/linweiyuan/go-chatgpt-api/components"
 	"io"
+	"log"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -46,6 +47,7 @@ func CreateChatCompletions(c *gin.Context) {
 	var request ChatCompletionsRequest
 	c.ShouldBindJSON(&request)
 	data, _ := json.Marshal(request)
+	log.Printf("api chat request param: %+v", request)
 	resp, err := handlePost(c, apiCreataeChatCompletions, data, request.Stream)
 	if err != nil {
 		return

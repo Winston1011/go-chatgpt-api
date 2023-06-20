@@ -3,8 +3,11 @@ package chatgpt
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
+	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gin-gonic/gin"
@@ -40,8 +43,9 @@ func CreateConversation(c *gin.Context) {
 	if request.Messages[0].Author.Role == "" {
 		request.Messages[0].Author.Role = defaultRole
 	}
-	if request.VariantPurpose == "" {
-		request.VariantPurpose = "none"
+
+	if request.Model == gpt4Model || request.Model == gpt4BrowsingModel || request.Model == gpt4PluginsModel {
+		request.ArkoseToken = fmt.Sprintf(arkoseTokenTemplate, generateRandomString(17), generateRandomString(10), gpt4ArkoseTokenPublicKey, generateRandomNumber())
 	}
 
 	jsonBytes, _ := json.Marshal(request)
@@ -281,4 +285,24 @@ func handlePostOrPatch(c *gin.Context, req *http.Request, errorMessage string) {
 	}
 
 	io.Copy(c.Writer, resp.Body)
+}
+
+//goland:noinspection SpellCheckingInspection
+func generateRandomString(length int) string {
+	rand.NewSource(time.Now().UnixNano())
+
+	charset := "0123456789abcdefghijklmnopqrstuvwxyz"
+	result := make([]byte, length)
+
+	for i := 0; i < length; i++ {
+		randomIndex := rand.Intn(len(charset))
+		result[i] = charset[randomIndex]
+	}
+
+	return string(result)
+}
+
+func generateRandomNumber() int {
+	rand.NewSource(time.Now().UnixNano())
+	return rand.Intn(100) + 1
 }
