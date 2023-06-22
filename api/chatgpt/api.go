@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/linweiyuan/go-chatgpt-api/api"
 	"io"
+	"log"
 	"math/rand"
 	"net/url"
 	"strings"
@@ -179,6 +180,8 @@ func handlePostOrPatch(c *gin.Context, req *http.Request, errorMessage string) {
 	req.Header.Set("User-Agent", api.UserAgent)
 	req.Header.Set("Authorization", api.GetAccessToken(c.GetHeader(api.AuthorizationHeader)))
 	resp, err := api.Client.Do(req)
+	log.Println("patch req", req)
+	log.Println("patch resp", resp)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, api.ReturnMessage(err.Error()))
 		return
