@@ -1,10 +1,14 @@
 # go-chatgpt-api
 
-### [English Doc](README_en.md)
+## 一个尝试绕过 `Cloudflare` 来使用 `ChatGPT` 接口的程序
 
-## 一个尝试绕过 `Cloudflare 403` 和 `Access denied` 的正向代理程序
+---
 
-### 实验性质项目，不保证稳定性和向后兼容，使用风险自负
+### 实验性质练手项目，不保证稳定性和向后兼容，使用风险自负
+
+---
+
+### 如果有疑问而不是什么程序出错其实可以在 [Discussions](https://github.com/linweiyuan/go-chatgpt-api/discussions) 里发而不是新增 Issue
 
 ---
 
@@ -14,337 +18,21 @@
 
 ---
 
-### 支持的 API（URL 和参数基本保持着和官网一致，部分接口有些许改动）
+### 范例（URL 和参数基本保持着和官网一致，部分接口有些许改动）
+
+部分例子，不是全部，**理论上**全部基于文本传输的接口都支持
+
+https://github.com/linweiyuan/go-chatgpt-api/tree/main/example （需安装 `HTTP Client` 插件）
 
 ---
 
-### ChatGPT APIs
-
----
-
-- `ChatGPT` 登录（返回 `accessToken`）（目前仅支持 `ChatGPT` 账号，谷歌或微软账号没有测试）
-
-`POST /chatgpt/login`
-
-<details>
-
-```json
-{
-  "username": "email",
-  "password": "password"
-}
-```
-
-</details>
-
----
-
-- 获取对话列表（历史记录）
-
-`GET /chatgpt/conversations?offset=0&limit=20`
-
-`offset` 不传默认为 0, `limit` 不传默认为 20 (最大为 100)
-
----
-
-- 获取对话内容
-
-`GET /chatgpt/conversation/{conversationID}`
-
----
-
-- 新建对话
-
-`POST /chatgpt/conversation`
-
-<details>
-
-```json
-{
-  "action": "next",
-  "messages": [
-    {
-      "id": "message id",
-      "author": {
-        "role": "user"
-      },
-      "content": {
-        "content_type": "text",
-        "parts": [
-          "Hello World"
-        ]
-      }
-    }
-  ],
-  "parent_message_id": "parent message id",
-  "conversation_id": "conversation id",
-  "model": "text-davinci-002-render-sha",
-  "timezone_offset_min": -480,
-  "history_and_training_disabled": false
-}
-```
-
-</details>
-
----
-
-- 生成对话标题
-
-`POST /chatgpt/conversation/gen_title/{conversationID}`
-
-<details>
-
-```json
-{
-  "message_id": "role assistant response message id"
-}
-```
-
-</details>
-
----
-
-- 重命名对话标题
-
-`PATCH /chatgpt/conversation/{conversationID}`
-
-<details>
-
-```json
-{
-  "title": "new title"
-}
-```
-
-</details>
-
----
-
-- 删除单个对话
-
-`PATCH /chatgpt/conversation/{conversationID}`
-
-<details>
-
-```json
-{
-  "is_visible": false
-}
-```
-
-</details>
-
----
-
-- 删除所有对话
-
-`PATCH /chatgpt/conversations`
-
-<details>
-
-```json
-{
-  "is_visible": false
-}
-```
-
-</details>
-
----
-
-- 消息反馈
-
-`POST /chatgpt/conversation/message_feedback`
-
-<details>
-
-```json
-{
-  "message_id": "message id",
-  "conversation_id": "conversation id",
-  "rating": "thumbsUp/thumbsDown"
-}
-```
-
-</details>
-
----
-
-### Platform APIs
-
----
-
-- `platform` 登录（返回 `sessionKey`）
-
-`POST /platform/login`
-
-<details>
-
-```json
-{
-  "username": "email",
-  "password": "password"
-}
-```
-
-</details>
-
----
-
-- [List models](https://platform.openai.com/docs/api-reference/models/list)
-
-`GET /platform/v1/models`
-
----
-
-- [Retrieve model](https://platform.openai.com/docs/api-reference/models/retrieve)
-
-`GET /platform/v1/models/{model}`
-
----
-
-- [Create completion](https://platform.openai.com/docs/api-reference/completions/create)
-
-`POST /platform/v1/completions`
-
-<details>
-
-```json
-{
-  "model": "text-davinci-003",
-  "prompt": "Say this is a test",
-  "max_tokens": 7,
-  "temperature": 0,
-  "stream": true
-}
-```
-
-</details>
-
----
-
-- [Create chat completion](https://platform.openai.com/docs/api-reference/chat/create)
-
-`POST /platform/v1/chat/completions`
-
-<details>
-
-```json
-{
-  "messages": [
-    {
-      "role": "user",
-      "content": "Hello World"
-    }
-  ],
-  "model": "gpt-3.5-turbo",
-  "stream": true
-}
-```
-
-</details>
-
----
-
-- [Create edit](https://platform.openai.com/docs/api-reference/edits/create)
-
-`POST /platform/v1/edits`
-
-<details>
-
-```json
-{
-  "model": "text-davinci-edit-001",
-  "input": "What day of the wek is it?",
-  "instruction": "Fix the spelling mistakes"
-}
-```
-
-</details>
-
----
-
-- [Create image](https://platform.openai.com/docs/api-reference/images/create)
-
-`POST /platform/v1/images/generations`
-
-<details>
-
-```json
-{
-  "prompt": "A cute dog",
-  "n": 2,
-  "size": "1024x1024"
-}
-```
-
-</details>
-
----
-
-- [Create embeddings](https://platform.openai.com/docs/api-reference/embeddings/create)
-
-`POST /platform/v1/embeddings`
-
-<details>
-
-```json
-{
-  "model": "text-embedding-ada-002",
-  "input": "The food was delicious and the waiter..."
-}
-```
-
-</details>
-
----
-
-- [Create moderations](https://platform.openai.com/docs/api-reference/moderations/create)
-
-`POST /platform/v1/moderations`
-
-<details>
-
-```json
-{
-  "model": "text-moderation-stable",
-  "input": "I want to kill them."
-}
-```
-
-</details>
-
----
-
-- [List files](https://platform.openai.com/docs/api-reference/files/list)
-
-`GET /platform/v1/files`
-
----
-
-- 获取 `credit grants` （只能传 `sessionKey`）
-
-`GET /platform/dashboard/billing/credit_grants`
-
----
-
-- 获取 `subscription` （只能传 `sessionKey`）
-
-`GET /platform/dashboard/billing/subscription`
-
----
-
-- 获取 `api keys` （只能传 `sessionKey`）
-
-`GET /platform/dashboard/user/api_keys`
-
----
+### 配置
 
 如需设置代理，可以设置环境变量 `GO_CHATGPT_API_PROXY`，比如 `GO_CHATGPT_API_PROXY=http://127.0.0.1:20171`
 或者 `GO_CHATGPT_API_PROXY=socks5://127.0.0.1:20170`，注释掉或者留空则不启用
 
 如需配合 `warp` 使用：`GO_CHATGPT_API_PROXY=socks5://chatgpt-proxy-server-warp:65535`，因为需要设置 `warp`
-的场景已经默认可以直接访问 `ChatGPT` 官网，因此共用一个变量不冲突
+的场景已经默认可以直接访问 `ChatGPT` 官网，因此共用一个变量不冲突（国内 `VPS` 不在讨论范围内）
 
 ---
 
@@ -357,6 +45,8 @@ services:
     image: linweiyuan/go-chatgpt-api
     ports:
       - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       - GO_CHATGPT_API_PROXY=
     restart: unless-stopped
@@ -376,6 +66,8 @@ services:
     image: linweiyuan/go-chatgpt-api
     ports:
       - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       - GO_CHATGPT_API_PROXY=socks5://chatgpt-proxy-server-warp:65535
     depends_on:
@@ -417,11 +109,59 @@ services:
     restart: unless-stopped
 ```
 
+这个只会更新新镜像，旧的镜像如果没手动删除还会在本地，如果新镜像不适用，将 `<none>` 镜像重新打 `tag`
+即可，比如：`docker tag <IMAGE_ID> linweiyuan/go-chatgpt-api`，这样就完成了回滚
+
+---
+
+### 如何集成主流第三方客户端
+
+- [moeakwak/chatgpt-web-share](https://github.com/moeakwak/chatgpt-web-share)
+
+```
+CHATGPT_BASE_URL=http://go-chatgpt-api:8080/chatgpt/backend-api/
+```
+
+- [lss233/chatgpt-mirai-qq-bot](https://github.com/lss233/chatgpt-mirai-qq-bot)
+
+```
+[openai]
+browserless_endpoint = "http://go-chatgpt-api:8080/chatgpt/backend-api/"
+```
+
+- [Kerwin1202/chatgpt-web](https://github.com/Kerwin1202/chatgpt-web) | [Chanzhaoyu/chatgpt-web](https://github.com/Chanzhaoyu/chatgpt-web)
+
+```
+API_REVERSE_PROXY=http://go-chatgpt-api:8080/chatgpt/backend-api/conversation
+```
+
+- [pengzhile/pandora](https://github.com/pengzhile/pandora)（不完全兼容）
+
+```
+go-chatgpt-api: GO_CHATGPT_API_PANDORA=1
+
+pandora: CHATGPT_API_PREFIX=http://go-chatgpt-api:8080
+```
+
+---
+
+### 最后感谢各位同学
+
+<a href="https://github.com/linweiyuan/go-chatgpt-api/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=linweiyuan/go-chatgpt-api" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).
+
+---
+
 <details>
 
 <summary>广告位</summary>
 
-`Vultr` 推荐链接：https://www.vultr.com/?ref=7372562
+---
+
+个人博客：https://linweiyuan.github.io
 
 ---
 

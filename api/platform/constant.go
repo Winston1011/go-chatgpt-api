@@ -8,7 +8,6 @@ const (
 
 	apiListModels             = apiUrl + "/v1/models"
 	apiRetrieveModel          = apiUrl + "/v1/models/%s"
-	apiCreateCompletions      = apiUrl + "/v1/completions"
 	apiCreataeChatCompletions = apiUrl + "/v1/chat/completions"
 	apiCreateEdit             = apiUrl + "/v1/edits"
 	apiCreateImage            = apiUrl + "/v1/images/generations"
@@ -18,8 +17,11 @@ const (
 
 	apiGetCreditGrants = apiUrl + "/dashboard/billing/credit_grants"
 	apiGetSubscription = apiUrl + "/dashboard/billing/subscription"
-	apiGetUsage 	   = apiUrl + "/dashboard/billing/usage?start_date=%s&end_date=%s"
+	apiGetUsage        = apiUrl + "/dashboard/billing/usage?start_date=%s&end_date=%s"
 	apiGetApiKeys      = apiUrl + "/dashboard/user/api_keys"
+
+	apiCreateChatCompletions = api.PlatformApiUrlPrefix + "/v1/chat/completions"
+	apiCreateCompletions     = api.PlatformApiUrlPrefix + "/v1/completions"
 
 	platformAuthClientID      = "DRivsnm2Mu42T3KOpqdtwB3NYviHYzwD"
 	platformAuthAudience      = "https://api.openai.com/v1"

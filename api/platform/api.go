@@ -1,12 +1,15 @@
 package platform
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
+	"log"
+
 	"fmt"
 	"github.com/linweiyuan/go-chatgpt-api/components"
+
 	"io"
-	"log"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -25,64 +28,60 @@ func RetrieveModel(c *gin.Context) {
 }
 
 //goland:noinspection GoUnhandledErrorResult
-func CreateCompletions(c *gin.Context) {
-	var request CreateCompletionsRequest
-	c.ShouldBindJSON(&request)
-	data, _ := json.Marshal(request)
-	resp, err := handlePost(c, apiCreateCompletions, data, request.Stream)
-	if err != nil {
-		return
-	}
-
-	defer resp.Body.Close()
-	if request.Stream {
-		api.HandleConversationResponse(c, resp)
-	} else {
-		io.Copy(c.Writer, resp.Body)
-	}
-}
-
-//goland:noinspection GoUnhandledErrorResult
 func CreateChatCompletions(c *gin.Context) {
-	var request ChatCompletionsRequest
-	c.ShouldBindJSON(&request)
-	data, _ := json.Marshal(request)
-	log.Printf("api chat request param: %+v", request)
-	resp, err := handlePost(c, apiCreataeChatCompletions, data, request.Stream)
+	body, _ := io.ReadAll(c.Request.Body)
+	var request struct {
+		Stream bool `json:"stream"`
+	}
+	json.Unmarshal(body, &request)
+
+	url := c.Request.URL.Path
+	if strings.Contains(url, "/chat") {
+		url = apiCreateChatCompletions
+	} else {
+		url = apiCreateCompletions
+	}
+	resp, err := handlePost(c, url, body, request.Stream)
 	if err != nil {
 		return
 	}
 
 	defer resp.Body.Close()
 	if request.Stream {
-		api.HandleConversationResponse(c, resp)
+		handleCompletionsResponse(c, resp)
 	} else {
 		io.Copy(c.Writer, resp.Body)
 	}
 }
 
-//goland:noinspection GoUnhandledErrorResult
-func CreateEdit(c *gin.Context) {
-	var request CreateEditRequest
-	c.ShouldBindJSON(&request)
-	data, _ := json.Marshal(request)
-	resp, err := handlePost(c, apiCreateEdit, data, false)
-	if err != nil {
-		return
-	}
-
-	defer resp.Body.Close()
-	io.Copy(c.Writer, resp.Body)
+func CreateCompletions(c *gin.Context) {
+	CreateChatCompletions(c)
 }
 
 //goland:noinspection GoUnhandledErrorResult
-func CreateImage(c *gin.Context) {
-	var request CreateImageRequest
-	c.ShouldBindJSON(&request)
-	data, _ := json.Marshal(request)
-	resp, err := handlePost(c, apiCreateImage, data, false)
-	if err != nil {
-		return
+func handleCompletionsResponse(c *gin.Context, resp *http.Response) {
+	c.Writer.Header().Set("Content-Type", "text/event-stream; charset=utf-8")
+
+	reader := bufio.NewReader(resp.Body)
+	for {
+		if c.Request.Context().Err() != nil {
+			break
+		}
+
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			break
+		}
+
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "event") ||
+			strings.HasPrefix(line, "data: 20") ||
+			line == "" {
+			continue
+		}
+
+		c.Writer.Write([]byte(line + "\n\n"))
+		c.Writer.Flush()
 	}
 
 	defer resp.Body.Close()
@@ -133,75 +132,6 @@ func GetGetUsage(c *gin.Context) {
 	handleGet(c, fmt.Sprintf(apiGetUsage, usageParam.StartDate, usageParam.EndDate))
 }
 
-//goland:noinspection GoUnhandledErrorResult
-func Login(c *gin.Context) {
-	var loginInfo api.LoginInfo
-	if err := c.ShouldBindJSON(&loginInfo); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, api.ReturnMessage(api.ParseUserInfoErrorMessage))
-		return
-	}
-
-	userLogin := UserLogin{
-		client: api.NewHttpClient(),
-	}
-
-	// hard refresh cookies
-	resp, _ := userLogin.client.Get(auth0LogoutUrl)
-	defer resp.Body.Close()
-
-	// get authorized url
-	authorizedUrl, statusCode, err := userLogin.GetAuthorizedUrl("")
-	if err != nil {
-		c.AbortWithStatusJSON(statusCode, api.ReturnMessage(err.Error()))
-		return
-	}
-
-	// get state
-	state, _, _ := userLogin.GetState(authorizedUrl)
-
-	// check username
-	statusCode, err = userLogin.CheckUsername(state, loginInfo.Username)
-	if err != nil {
-		c.AbortWithStatusJSON(statusCode, api.ReturnMessage(err.Error()))
-		return
-	}
-
-	// check password
-	code, statusCode, err := userLogin.CheckPassword(state, loginInfo.Username, loginInfo.Password)
-	if err != nil {
-		c.AbortWithStatusJSON(statusCode, api.ReturnMessage(err.Error()))
-		return
-	}
-
-	// get access token
-	accessToken, statusCode, err := userLogin.GetAccessToken(code)
-	if err != nil {
-		c.AbortWithStatusJSON(statusCode, api.ReturnMessage(err.Error()))
-		return
-	}
-
-	// get session key
-	var getAccessTokenResponse GetAccessTokenResponse
-	json.Unmarshal([]byte(accessToken), &getAccessTokenResponse)
-	req, _ := http.NewRequest(http.MethodPost, dashboardLoginUrl, strings.NewReader("{}"))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", api.UserAgent)
-	req.Header.Set("Authorization", api.GetAccessToken(getAccessTokenResponse.AccessToken))
-	resp, err = userLogin.client.Do(req)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, api.ReturnMessage(err.Error()))
-		return
-	}
-
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		c.AbortWithStatusJSON(resp.StatusCode, api.ReturnMessage(getSessionKeyErrorMessage))
-		return
-	}
-
-	io.Copy(c.Writer, resp.Body)
-}
-
 func GetSubscription(c *gin.Context) {
 	handleGet(c, apiGetSubscription)
 }
@@ -215,12 +145,14 @@ func handleGet(c *gin.Context, url string) {
 	req, _ := http.NewRequest(http.MethodGet, url, nil)
 	req.Header.Set("Authorization", api.GetAccessToken(c.GetHeader(api.AuthorizationHeader)))
 	resp, _ := api.Client.Do(req)
+	log.Println(req)
 	defer resp.Body.Close()
 	io.Copy(c.Writer, resp.Body)
 }
 
 func handlePost(c *gin.Context, url string, data []byte, stream bool) (*http.Response, error) {
 	req, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(data))
+	log.Println(req)
 	req.Header.Set("Authorization", api.GetAccessToken(c.GetHeader(api.AuthorizationHeader)))
 	if stream {
 		req.Header.Set("Accept", "text/event-stream")

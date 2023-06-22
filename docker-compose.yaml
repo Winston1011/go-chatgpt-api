@@ -6,9 +6,12 @@ services:
     container_name: go-chatgpt-api
     image: go-chatgpt-api:1.0
     ports:
-      - "8080:8080"
+      - "4141:4141"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       - TZ=Asia/Shanghai
       - GO_CHATGPT_API_PROXY=
+      - GO_CHATGPT_API_PORT=4141
     restart: unless-stopped
     network_mode: "host"
