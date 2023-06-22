@@ -204,6 +204,8 @@ func sendConversationRequest(c *gin.Context, request CreateConversationRequest) 
 	req.Header.Set("Authorization", api.GetAccessToken(c.GetHeader(api.AuthorizationHeader)))
 	req.Header.Set("Accept", "text/event-stream")
 	resp, err := api.Client.Do(req)
+	log.Println("conversation req: ", req)
+	log.Println("conversation resp: ", resp)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, api.ReturnMessage(err.Error()))
 		return nil, true
