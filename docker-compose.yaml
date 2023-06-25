@@ -13,5 +13,6 @@ services:
       - TZ=Asia/Shanghai
       - GO_CHATGPT_API_PROXY=
       - GO_CHATGPT_API_PORT=4141
+      - GO_CHATGPT_API_ARKOSE_TOKEN_URL=https://arkose-token.linweiyuan.com
     restart: unless-stopped
     network_mode: "host"

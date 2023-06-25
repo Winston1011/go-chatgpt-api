@@ -40,6 +40,8 @@ const (
 	EmailOrPasswordInvalidErrorMessage = "Email or password is not correct."
 	GetAccessTokenErrorMessage         = "Failed to get access token."
 	defaultTimeoutSeconds              = 300 // 5 minutes
+
+	ReadyHint = "Service go-chatgpt-api is ready."
 )
 
 var Client tls_client.HttpClient
@@ -172,7 +174,7 @@ func HealthCheck(c *gin.Context) {
 	}
 
 	responseMap := make(map[string]interface{})
-	responseMap["imageId"] = containerInfo.Image
+	responseMap["ImageID"] = containerInfo.Image
 
 	c.JSON(http.StatusOK, responseMap)
 }
