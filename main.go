@@ -1,17 +1,17 @@
 package main
 
 import (
-	"log"
-	"os"
-	"strings"
-
 	"github.com/gin-gonic/gin"
 	"github.com/linweiyuan/go-chatgpt-api/api"
 	"github.com/linweiyuan/go-chatgpt-api/api/chatgpt"
 	"github.com/linweiyuan/go-chatgpt-api/api/platform"
 	_ "github.com/linweiyuan/go-chatgpt-api/env"
 	"github.com/linweiyuan/go-chatgpt-api/middleware"
+	"log"
+	"os"
+	"strings"
 )
+
 
 func init() {
 	gin.ForceConsoleColor()

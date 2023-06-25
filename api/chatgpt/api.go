@@ -4,10 +4,12 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	http "github.com/bogdanfinn/fhttp"
 	"github.com/gin-gonic/gin"
 	"github.com/linweiyuan/go-chatgpt-api/api"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -20,6 +22,80 @@ var (
 //goland:noinspection SpellCheckingInspection
 func init() {
 	arkoseTokenUrl = os.Getenv("GO_CHATGPT_API_ARKOSE_TOKEN_URL")
+}
+
+func getArkoseToken() (string, error) {
+	paramsURL := "https://ai.fakeopen.com/api/arkose/params?format=all"
+	headers := map[string]string{
+		"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.4 Safari/605.1.15",
+	}
+
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", paramsURL, nil)
+	if err != nil {
+		return "", err
+	}
+
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		return "", fmt.Errorf("failed to get arkose params: %d %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	var data map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&data)
+	if err != nil {
+		return "", err
+	}
+
+	if _, ok := data["endpoint"].(string); !ok {
+		return "", fmt.Errorf("invalid arkose params: %v", data)
+	}
+
+	_, _ = json.Marshal(data["headers"])
+	formJSON, _ := json.Marshal(data["form"])
+
+	req, err = http.NewRequest("POST", data["endpoint"].(string), strings.NewReader(string(formJSON)))
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+
+	resp, err = client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		return "", fmt.Errorf("failed to get arkose token: %d %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(&data)
+	if err != nil {
+		return "", err
+	}
+
+	token, ok := data["token"].(string)
+	if !ok {
+		return "", fmt.Errorf("failed to get arkose token: %v", data)
+	}
+
+	return token, nil
 }
 
 
@@ -63,6 +139,8 @@ func CreateConversation(c *gin.Context) {
 			responseMap := make(map[string]string)
 			json.NewDecoder(resp.Body).Decode(&responseMap)
 			request.ArkoseToken = responseMap["token"]
+		} else {
+			request.ArkoseToken, _ = getArkoseToken()
 		}
 	}
 
